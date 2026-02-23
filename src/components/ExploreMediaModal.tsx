@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTransition } from "react";
 import { getDefaultImage } from "@/lib/getDefaultImage";
 import { resolvePosterUrl } from "@/lib/images";
@@ -35,6 +37,12 @@ export default function ExploreMediaModal({
   onAddToLibrary,
 }: ExploreMediaModalProps) {
   const [isPending, startTransition] = useTransition();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const posterSrc = item.poster_path
     ? resolvePosterUrl(item.poster_path, item.type)
     : getDefaultImage(item.type);
@@ -46,9 +54,11 @@ export default function ExploreMediaModal({
     });
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -75,7 +85,7 @@ export default function ExploreMediaModal({
             </div>
           </div>
 
-          <div className="min-w-0 flex-1 space-y-3">
+          <div className="min-w-0 flex-1 space-y-3 overflow-y-auto max-h-[calc(100vh-8rem)]">
             <h2 className="text-xl font-semibold text-white">{item.title}</h2>
 
             <span className="text-xs uppercase text-yellow-400">{item.type}</span>
@@ -141,6 +151,7 @@ export default function ExploreMediaModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
