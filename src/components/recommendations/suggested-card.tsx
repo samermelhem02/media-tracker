@@ -12,6 +12,7 @@ type SuggestedCardProps = {
   rec: EnrichedRecommendation;
   action: AddFromRecommendationAction;
   onSelectItem: (item: ExploreMediaItem) => void;
+  isInLibrary?: boolean;
 };
 
 const CARD_TRANSITION = { duration: 0.18, ease: "easeInOut" as const };
@@ -29,7 +30,7 @@ function toExploreItem(rec: EnrichedRecommendation): ExploreMediaItem {
   };
 }
 
-export function SuggestedCard({ rec, action, onSelectItem }: SuggestedCardProps) {
+export function SuggestedCard({ rec, action, onSelectItem, isInLibrary }: SuggestedCardProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const posterUrl = resolvePosterUrl(rec.poster_path, rec.type);
@@ -72,10 +73,18 @@ export function SuggestedCard({ rec, action, onSelectItem }: SuggestedCardProps)
         <button
           type="button"
           onClick={handleAdd}
-          className="absolute top-2 right-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-yellow-500"
-          aria-label="Add to library"
+          className={`absolute left-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 transition-shadow ${
+            isInLibrary
+              ? "bg-yellow-500/25 text-yellow-400 shadow-[0_0_14px_rgba(250,204,21,0.5)]"
+              : "bg-black/70 text-white hover:bg-black/90 hover:shadow-[0_0_14px_rgba(250,204,21,0.6)] hover:text-yellow-300"
+          }`}
+          aria-label={isInLibrary ? "In your library" : "Add to library"}
         >
-          +
+          {isInLibrary ? (
+            <span className="text-lg font-medium leading-none">✓</span>
+          ) : (
+            <span className="text-xl font-light leading-none">+</span>
+          )}
         </button>
       </div>
 

@@ -6,14 +6,20 @@ import type { ExploreMediaItem } from "@/components/ExploreMediaModal";
 
 type AddFromRecommendationAction = (formData: FormData) => Promise<never>;
 
+function normalizeTitle(title: string | null | undefined): string {
+  return (title ?? "").trim().toLowerCase();
+}
+
 export function SuggestedGrid({
   suggested,
   action,
   onSelectItem,
+  libraryTitles,
 }: {
   suggested: EnrichedRecommendation[];
   action: AddFromRecommendationAction;
   onSelectItem: (item: ExploreMediaItem) => void;
+  libraryTitles?: Set<string>;
 }) {
   if (suggested.length === 0) {
     return (
@@ -36,6 +42,7 @@ export function SuggestedGrid({
             rec={rec}
             action={action}
             onSelectItem={onSelectItem}
+            isInLibrary={libraryTitles?.has(normalizeTitle(rec.title))}
           />
         ))}
       </div>

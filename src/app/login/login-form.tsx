@@ -124,13 +124,7 @@ export function LoginForm({ action }: { action: LoginAction }) {
       </Link>
 
       <p
-        className="auth-legal"
-        style={{
-          marginTop: "32px",
-          fontSize: "12px",
-          color: "var(--auth-text-muted)",
-          lineHeight: 1.5,
-        }}
+        className="auth-legal mt-6 text-[11px] leading-snug text-[var(--auth-text-muted)]"
       >
         By signing in, you agree to our Terms of Service and Privacy Policy.
       </p>

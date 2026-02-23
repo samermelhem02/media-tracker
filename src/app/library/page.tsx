@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/server";
 import { ensureProfile, getProfileForUser } from "@/lib/profile";
 import { listMediaItems } from "@/lib/media-items";
 import { getCachedPosterUrl } from "@/lib/poster-url-cache";
@@ -21,15 +21,13 @@ export default async function LibraryPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getServerUser();
 
   if (!user) redirect("/login");
 
   await ensureProfile(supabase, user);
-  if (!(await getProfileForUser(supabase, user.id))) redirect("/login");
+  const profile = await getProfileForUser(supabase, user.id);
+  if (!profile) redirect("/login");
 
   const params = await searchParams;
   const filters = {
@@ -60,7 +58,7 @@ export default async function LibraryPage({
       : 0;
 
   return (
-    <div className="relative min-h-screen px-4 py-8">
+    <div className="relative min-h-screen px-4 py-6 sm:px-5 sm:py-8 md:px-6">
       <Suspense fallback={null}>
         <SuccessToast />
       </Suspense>
@@ -74,9 +72,9 @@ export default async function LibraryPage({
         <div className="absolute inset-0 bg-black/70" />
       </div>
       <div className="relative z-10 animate-fadeIn">
-        <TopNav user={user} />
-        <main className="mx-auto max-w-6xl pt-8">
-          <GlassCard className="mb-6 p-6">
+        <TopNav user={user} profile={profile} />
+        <main className="mx-auto w-full max-w-6xl min-w-0 pt-6 sm:pt-8">
+          <GlassCard className="mb-4 p-4 sm:mb-6 sm:p-6">
             <DashboardStats
               totalItems={totalItems}
               completedItems={completedItems}

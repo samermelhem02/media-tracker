@@ -72,7 +72,7 @@ export function LibraryView({
         ) : null}
       </Modal>
 
-      <GlassCard className="mb-6 p-6">
+      <GlassCard className="mb-4 p-4 sm:mb-6 sm:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-lg font-medium">Library</h2>
           <button
@@ -90,7 +90,7 @@ export function LibraryView({
           initialMediaType={initialMediaType}
         />
       </GlassCard>
-      <GlassCard className="p-6">
+      <GlassCard className="p-4 sm:p-6">
         <MediaList
           items={items}
           groupByType={!initialQ && !initialStatus && !initialMediaType}

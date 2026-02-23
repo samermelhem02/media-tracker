@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/server";
 import { ensureProfile, getProfileForUser } from "@/lib/profile";
 import { getMediaItem } from "@/lib/media-items";
 import { getCachedPosterUrl } from "@/lib/poster-url-cache";
@@ -14,15 +14,13 @@ export default async function LibraryItemPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getServerUser();
 
   if (!user) notFound();
 
   await ensureProfile(supabase, user);
-  if (!(await getProfileForUser(supabase, user.id))) notFound();
+  const profile = await getProfileForUser(supabase, user.id);
+  if (!profile) notFound();
 
   const { id } = await params;
   const item = await getMediaItem(supabase, user.id, id);
@@ -40,7 +38,7 @@ export default async function LibraryItemPage({
   const tagsList = Array.isArray(item.tags) ? item.tags : [];
 
   return (
-    <div className="relative min-h-screen px-4 py-8">
+    <div className="relative min-h-screen px-4 py-6 sm:px-5 sm:py-8 md:px-6">
       <div className="fixed inset-0 -z-10">
         <div
           className="absolute inset-0 scale-110 bg-cover bg-center opacity-30 blur-xl"
@@ -49,8 +47,8 @@ export default async function LibraryItemPage({
         <div className="absolute inset-0 bg-black/70" />
       </div>
       <div className="relative z-10 animate-fadeIn">
-        <TopNav user={user} />
-        <main className="mx-auto max-w-4xl pt-8">
+        <TopNav user={user} profile={profile} />
+        <main className="mx-auto w-full max-w-4xl min-w-0 pt-6 sm:pt-8">
             <Link
               href="/library"
               className="mb-6 inline-block text-sm text-zinc-400 hover:text-white"

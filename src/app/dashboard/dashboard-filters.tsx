@@ -1,5 +1,8 @@
 import { MEDIA_TYPES, MEDIA_STATUSES } from "@/lib/db-types";
 
+const inputClass =
+  "w-full rounded-lg border border-zinc-600 bg-zinc-800/80 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-yellow-500/50 focus:outline-none focus:ring-1 focus:ring-yellow-500/30 transition-colors";
+
 export function DashboardFilters({
   initialQ,
   initialStatus,
@@ -15,10 +18,10 @@ export function DashboardFilters({
     <form
       method="get"
       action={action}
-      className="mb-6 flex flex-wrap items-end gap-3"
+      className="mb-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-3"
     >
-      <div>
-        <label htmlFor="filter-q" className="mb-1 block text-sm font-medium">
+      <div className="min-w-0 flex-1 sm:max-w-[200px]">
+        <label htmlFor="filter-q" className="mb-1.5 block text-xs font-medium text-zinc-400">
           Search
         </label>
         <input
@@ -27,18 +30,18 @@ export function DashboardFilters({
           type="search"
           defaultValue={initialQ}
           placeholder="Title..."
-          className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+          className={inputClass}
         />
       </div>
-      <div>
-        <label htmlFor="filter-status" className="mb-1 block text-sm font-medium">
+      <div className="min-w-0 flex-1 sm:max-w-[140px]">
+        <label htmlFor="filter-status" className="mb-1.5 block text-xs font-medium text-zinc-400">
           Status
         </label>
         <select
           id="filter-status"
           name="status"
           defaultValue={initialStatus ?? ""}
-          className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+          className={inputClass}
         >
           <option value="">All</option>
           {MEDIA_STATUSES.map((s) => (
@@ -48,15 +51,15 @@ export function DashboardFilters({
           ))}
         </select>
       </div>
-      <div>
-        <label htmlFor="filter-media_type" className="mb-1 block text-sm font-medium">
+      <div className="min-w-0 flex-1 sm:max-w-[140px]">
+        <label htmlFor="filter-media_type" className="mb-1.5 block text-xs font-medium text-zinc-400">
           Type
         </label>
         <select
           id="filter-media_type"
           name="media_type"
           defaultValue={initialMediaType ?? ""}
-          className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+          className={inputClass}
         >
           <option value="">All</option>
           {MEDIA_TYPES.map((t) => (
@@ -68,9 +71,9 @@ export function DashboardFilters({
       </div>
       <button
         type="submit"
-        className="rounded bg-zinc-200 px-3 py-1.5 text-sm font-medium hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600"
+        className="w-full rounded-lg bg-yellow-500 px-4 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 sm:w-auto"
       >
-        Apply
+        Apply filters
       </button>
     </form>
   );

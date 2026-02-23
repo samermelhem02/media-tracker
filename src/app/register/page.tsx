@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getServerUser } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/profile";
 import { AuthHeader } from "@/components/auth/auth-header";
 import { RegisterForm } from "./register-form";
@@ -32,26 +32,15 @@ async function registerAction(formData: FormData) {
 }
 
 export default async function RegisterPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await getServerUser();
   if (user) redirect("/library");
 
   return (
     <div className="cinematic-auth">
       <AuthHeader />
 
-      <main role="main" style={{ padding: "48px 24px 64px" }}>
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "flex-start",
-          }}
-        >
+      <main role="main" className="px-4 py-8 sm:px-6 sm:py-12 md:px-8">
+        <div className="mx-auto flex max-w-[1200px] justify-center">
           <section aria-label="Create account form">
             <RegisterForm action={registerAction} />
           </section>

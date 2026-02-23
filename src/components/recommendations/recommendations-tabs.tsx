@@ -11,6 +11,10 @@ import type { ExploreMediaItem } from "@/components/ExploreMediaModal";
 type AddFromTMDBAction = (formData: FormData) => Promise<void>;
 type AddFromRecommendationAction = (formData: FormData) => Promise<never>;
 
+function normalizeTitle(title: string | null | undefined): string {
+  return (title ?? "").trim().toLowerCase();
+}
+
 type RecommendationsTabsProps = {
   suggestedContent: React.ReactNode;
   trendingMovies: TMDBMedia[];
@@ -20,6 +24,7 @@ type RecommendationsTabsProps = {
   addFromRecommendationAction: AddFromRecommendationAction;
   addFromTMDBAction: AddFromTMDBAction;
   onSelectItem: (item: ExploreMediaItem) => void;
+  libraryTitles: Set<string>;
 };
 
 const TABS = ["Suggested", "Movies", "Series", "Music", "Games"] as const;
@@ -30,11 +35,13 @@ function TrendCard({
   type,
   action,
   onSelectItem,
+  isInLibrary,
 }: {
   item: TrendingMusic | TrendingGame;
   type: "music" | "game";
   action: AddFromRecommendationAction;
   onSelectItem: (item: ExploreMediaItem) => void;
+  isInLibrary?: boolean;
 }) {
   const [isNavigating, setIsNavigating] = useState(false);
   const posterUrl = resolvePosterUrl(item.poster_path, type);
@@ -113,10 +120,18 @@ function TrendCard({
         <button
           type="button"
           onClick={handleAdd}
-          className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-yellow-500"
-          aria-label="Add to library"
+          className={`absolute left-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 transition-shadow ${
+            isInLibrary
+              ? "bg-yellow-500/25 text-yellow-400 shadow-[0_0_14px_rgba(250,204,21,0.5)]"
+              : "bg-black/70 text-white hover:bg-black/90 hover:shadow-[0_0_14px_rgba(250,204,21,0.6)] hover:text-yellow-300"
+          }`}
+          aria-label={isInLibrary ? "In your library" : "Add to library"}
         >
-          +
+          {isInLibrary ? (
+            <span className="text-lg font-medium leading-none">✓</span>
+          ) : (
+            <span className="text-xl font-light leading-none">+</span>
+          )}
         </button>
         <div className="relative w-full aspect-[2/3] shrink-0 overflow-hidden bg-zinc-800">
           <img
@@ -142,18 +157,19 @@ export function RecommendationsTabs({
   addFromRecommendationAction,
   addFromTMDBAction,
   onSelectItem,
+  libraryTitles,
 }: RecommendationsTabsProps) {
   const [activeTab, setActiveTab] = useState<TabId>("Suggested");
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-2 border-b border-white/15 pb-2">
+      <div className="flex flex-nowrap gap-1.5 overflow-x-auto border-b border-white/15 pb-2 sm:gap-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {TABS.map((tab) => (
           <button
             key={tab}
             type="button"
             onClick={() => setActiveTab(tab)}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 ${
+            className={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 ${
               activeTab === tab
                 ? "font-semibold"
                 : ""
@@ -194,6 +210,7 @@ export function RecommendationsTabs({
                 type="movie"
                 action={addFromTMDBAction}
                 onSelectItem={onSelectItem}
+                isInLibrary={libraryTitles.has(normalizeTitle(item.title ?? item.name))}
               />
             ))}
           </div>
@@ -211,6 +228,7 @@ export function RecommendationsTabs({
                 type="tv"
                 action={addFromTMDBAction}
                 onSelectItem={onSelectItem}
+                isInLibrary={libraryTitles.has(normalizeTitle(item.title ?? item.name))}
               />
             ))}
           </div>
@@ -228,6 +246,7 @@ export function RecommendationsTabs({
                 type="music"
                 action={addFromRecommendationAction}
                 onSelectItem={onSelectItem}
+                isInLibrary={libraryTitles.has(normalizeTitle(item.title))}
               />
             ))}
           </div>
@@ -245,6 +264,7 @@ export function RecommendationsTabs({
                 type="game"
                 action={addFromRecommendationAction}
                 onSelectItem={onSelectItem}
+                isInLibrary={libraryTitles.has(normalizeTitle(item.title))}
               />
             ))}
           </div>

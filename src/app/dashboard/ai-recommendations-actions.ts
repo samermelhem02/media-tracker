@@ -4,6 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import { listMediaItems } from "@/lib/media-items";
 import { openai } from "@/lib/openai";
 import type { MediaType } from "@/lib/db-types";
+import { enrichRecommendation } from "@/lib/enrich-recommendations";
+import type { EnrichedRecommendation } from "@/lib/enrich-recommendations";
+
+const WHATS_ON_YOUR_MIND_MAX_LENGTH = 200;
 
 export type Recommendation = {
   title: string;
@@ -32,6 +36,14 @@ const DEMO_RECOMMENDATIONS: Recommendation[] = [
     media_type: "game",
     why: "Narrative-rich RPG with strong writing, similar to your completed titles.",
   },
+];
+
+/** Static picks for "What's on your mind?" when AI_MODE is demo */
+const WHATS_ON_YOUR_MIND_DEMO: Recommendation[] = [
+  { title: "Spirited Away", media_type: "movie", why: "Perfect for when you want something thoughtful and beautiful to get lost in." },
+  { title: "The Bear", media_type: "series", why: "Intense, short, and satisfying—great when you need something that hits." },
+  { title: "Hades", media_type: "game", why: "Pick-up-and-play fun with a story that grows on you." },
+  { title: "Random Access Memories", media_type: "music", why: "Smooth, uplifting listen for any mood." },
 ];
 
 function buildSummary(items: { title: string; media_type: string; genre?: string | null; tags?: string[] | null }[]): string {
@@ -201,4 +213,96 @@ ${summary}`,
   }
 
   return { recommendations: ensureBalancedRecommendations(DEMO_RECOMMENDATIONS) };
+}
+
+export type WhatsOnYourMindResult = {
+  suggestions: EnrichedRecommendation[];
+  error?: string;
+};
+
+/**
+ * "What's on your mind?" — user sends a short mood/prompt, get back picks to watch/listen/play.
+ * Prompt is limited to WHATS_ON_YOUR_MIND_MAX_LENGTH chars for AI usage.
+ * Demo mode returns static picks; live mode uses OpenAI with a friendly prompt.
+ */
+export async function whatsOnYourMindRecommendationsAction(
+  formData: FormData,
+): Promise<WhatsOnYourMindResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { suggestions: [], error: "Please sign in to get picks." };
+
+  const rawPrompt = (formData.get("prompt") as string)?.trim() ?? "";
+  const prompt = rawPrompt.slice(0, WHATS_ON_YOUR_MIND_MAX_LENGTH);
+
+  const allLibrary = await listMediaItems(supabase, user.id);
+  const excludeTitles = buildExcludeTitles(allLibrary);
+  const completed = await listMediaItems(supabase, user.id, { status: "completed" });
+  const librarySummary =
+    completed.length > 0 ? buildSummary(completed) : "They have no completed items yet.";
+  const mode = process.env.AI_MODE;
+
+  let raw: Recommendation[];
+
+  if (mode === "demo") {
+    raw = ensureBalancedRecommendations(WHATS_ON_YOUR_MIND_DEMO);
+  } else if (mode === "live" && prompt.length > 0) {
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        temperature: 0.65,
+        max_tokens: 600,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a friendly media recommendation assistant. The user will tell you what's on their mind (mood, situation, or what they feel like). Suggest 3–5 things to watch, listen to, or play that fit the vibe. Return ONLY valid JSON. Use media_type: 'movie' | 'series' | 'music' | 'game'. Include at least one 'movie' or 'series', at least one 'music', and at least one 'game' when possible. Do NOT suggest titles they already have in their library. Each recommendation needs: title, media_type, and why (one short, friendly sentence).",
+          },
+          {
+            role: "user",
+            content: `What's on their mind: "${prompt}"
+
+Titles they already have (do not suggest these): ${excludeTitles}
+
+Their taste from completed items (use for style, don't repeat titles):
+${librarySummary}
+
+Return JSON only: { "recommendations": [ { "title": "...", "media_type": "movie"|"series"|"game"|"music", "why": "..." } ] }`,
+          },
+        ],
+      });
+
+      const content = completion.choices[0]?.message?.content;
+      if (typeof content !== "string")
+        return { suggestions: [], error: "Something went wrong. Try again." };
+
+      const parsed = parseRecommendationsJson(content);
+      if (!parsed) return { suggestions: [], error: "Something went wrong. Try again." };
+
+      const libraryTitles = new Set(
+        allLibrary.map((i) => i.title?.trim().toLowerCase()).filter(Boolean),
+      );
+      const filtered = parsed.filter(
+        (r) => !libraryTitles.has(r.title.trim().toLowerCase()),
+      );
+      raw = ensureBalancedRecommendations(filtered);
+    } catch {
+      return { suggestions: [], error: "We couldn't load picks right now. Try again in a moment." };
+    }
+  } else if (mode === "live" && prompt.length === 0) {
+    return { suggestions: [], error: "Tell us what's on your mind in a few words." };
+  } else {
+    raw = ensureBalancedRecommendations(WHATS_ON_YOUR_MIND_DEMO);
+  }
+
+  try {
+    const suggestions: EnrichedRecommendation[] = await Promise.all(
+      raw.map((r, i) => enrichRecommendation(r, i)),
+    );
+    return { suggestions };
+  } catch {
+    return { suggestions: [], error: "We couldn't load details. Try again." };
+  }
 }

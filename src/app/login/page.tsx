@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getServerUser } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/profile";
 import { AuthHeader } from "@/components/auth/auth-header";
 import { LoginForm } from "./login-form";
@@ -44,38 +44,25 @@ const BENEFITS = [
 ];
 
 export default async function LoginPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await getServerUser();
   if (user) redirect("/library");
 
   return (
     <div className="cinematic-auth">
       <AuthHeader />
 
-      <main role="main" style={{ padding: "48px 24px 64px" }}>
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "48px",
-            alignItems: "center",
-          }}
-          className="auth-two-column"
-        >
-          <section aria-label="Sign in form" style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+      <main role="main" className="px-4 py-8 sm:px-6 sm:py-12 md:px-8">
+        <div className="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12">
+          <section aria-label="Sign in form" className="flex justify-center w-full order-1">
             <LoginForm action={loginAction} />
           </section>
 
-          <section aria-label="Benefits" className="auth-benefits">
-            <div className="auth-benefit-list" style={{ maxWidth: "400px" }}>
+          <section aria-label="Benefits" className="auth-benefits order-2 md:order-none">
+            <div className="auth-benefit-list mx-auto max-w-[400px] text-center md:text-left">
               {BENEFITS.map((b, i) => (
                 <div key={i}>
-                  <h3>{b.title}</h3>
-                  <p>{b.description}</p>
+                  <h3 className="text-sm font-semibold text-[var(--auth-text)]">{b.title}</h3>
+                  <p className="mt-1 text-xs leading-relaxed text-[var(--auth-text-muted)]">{b.description}</p>
                 </div>
               ))}
             </div>
