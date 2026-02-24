@@ -7,7 +7,7 @@ import { ExploreAddButton } from "@/components/ui/explore-add-button";
 import type { EnrichedRecommendation } from "@/lib/enrich-recommendations";
 import type { ExploreMediaItem } from "@/components/ExploreMediaModal";
 
-type AddFromRecommendationAction = (formData: FormData) => Promise<never>;
+type AddFromRecommendationAction = (formData: FormData) => Promise<void>;
 
 type SuggestedCardProps = {
   rec: EnrichedRecommendation;

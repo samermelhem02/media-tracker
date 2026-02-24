@@ -10,7 +10,7 @@ import type { ExploreMediaItem } from "@/components/ExploreMediaModal";
 const MAX_LENGTH = 200;
 const PLACEHOLDER = "e.g. something cozy for a rainy day, or I need to unwind after work…";
 
-type AddFromRecommendationAction = (formData: FormData) => Promise<never>;
+type AddFromRecommendationAction = (formData: FormData) => Promise<void>;
 
 function normalizeTitle(title: string | null | undefined): string {
   return (title ?? "").trim().toLowerCase();

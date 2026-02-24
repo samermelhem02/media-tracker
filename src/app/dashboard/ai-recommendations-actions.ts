@@ -206,11 +206,9 @@ ${summary}`,
         (r) => !libraryTitles.has(r.title.trim().toLowerCase()),
       );
       return { recommendations: ensureBalancedRecommendations(filtered) };
-    } catch {
-      return { recommendations: [], error: "AI request failed" };
-    }
+  } catch {
+    return { recommendations: [], error: "AI request failed" };
   }
-
   return { recommendations: ensureBalancedRecommendations(DEMO_RECOMMENDATIONS) };
 }
 
