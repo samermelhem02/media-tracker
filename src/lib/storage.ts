@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-/** Private bucket for poster images. Create in Supabase Dashboard > Storage: bucket name "media-posters", set to Private. */
+/** Private bucket for poster images. Created by supabase/migrations/0002_storage_media_posters.sql */
 const BUCKET = "media-posters";
 
 /** Prefix stored in DB for poster paths (image_url). Use with path only; never store signed URLs. */

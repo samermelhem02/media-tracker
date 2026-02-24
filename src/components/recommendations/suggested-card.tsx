@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { resolvePosterUrl } from "@/lib/images";
+import { ExploreAddButton } from "@/components/ui/explore-add-button";
 import type { EnrichedRecommendation } from "@/lib/enrich-recommendations";
 import type { ExploreMediaItem } from "@/components/ExploreMediaModal";
 
@@ -33,6 +34,7 @@ function toExploreItem(rec: EnrichedRecommendation): ExploreMediaItem {
 export function SuggestedCard({ rec, action, onSelectItem, isInLibrary }: SuggestedCardProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const posterUrl = resolvePosterUrl(rec.poster_path, rec.type);
 
   const handleClick = () => {
@@ -45,6 +47,8 @@ export function SuggestedCard({ rec, action, onSelectItem, isInLibrary }: Sugges
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isInLibrary || isAdding) return;
+    setIsAdding(true);
     formRef.current?.requestSubmit();
   };
 
@@ -70,22 +74,13 @@ export function SuggestedCard({ rec, action, onSelectItem, isInLibrary }: Sugges
           alt=""
           className="h-full w-full object-cover"
         />
-        <button
-          type="button"
+        <ExploreAddButton
+          isInLibrary={isInLibrary}
+          isAdding={isAdding}
           onClick={handleAdd}
-          className={`absolute left-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 transition-shadow ${
-            isInLibrary
-              ? "bg-yellow-500/25 text-yellow-400 shadow-[0_0_14px_rgba(250,204,21,0.5)]"
-              : "bg-black/70 text-white hover:bg-black/90 hover:shadow-[0_0_14px_rgba(250,204,21,0.6)] hover:text-yellow-300"
-          }`}
-          aria-label={isInLibrary ? "In your library" : "Add to library"}
-        >
-          {isInLibrary ? (
-            <span className="text-lg font-medium leading-none">✓</span>
-          ) : (
-            <span className="text-xl font-light leading-none">+</span>
-          )}
-        </button>
+          disabled={isInLibrary || isAdding}
+          aria-label={isInLibrary ? "In your library" : isAdding ? "Adding…" : "Add to library"}
+        />
       </div>
 
       <div className="space-y-1 p-3">

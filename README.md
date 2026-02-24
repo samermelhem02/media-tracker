@@ -1,41 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Trackify (Media Tracker)
 
-## Getting Started
+Trackify is a simple media tracker to save items (movies / series / music / books / games), mark status (owned / wishlist / watching / completed), rate, review, and search your collection.  
+It uses **Supabase** (Auth + DB), **TMDB** for metadata, and an optional **OpenAI** demo mode.
 
-First, run the development server:
+---
+
+## Requirements
+
+- Node.js 18+ (recommended)
+- pnpm
+
+---
+
+## Run locally
+
+### Install
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Create `.env.local`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create a file named `.env.local` in the project root (**do not commit this file**):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 
-## Learn More
+TMDB_API_KEY=YOUR_TMDB_API_KEY
 
-To learn more about Next.js, take a look at the following resources:
+# Optional (AI)
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+AI_MODE=demo
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Start the app
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm dev
+```
+
+Open: http://localhost:3000
+
+---
+
+## Supabase setup
+
+### Create a Supabase project
+
+1. Create a new Supabase project in the [Supabase dashboard](https://supabase.com/dashboard).
+2. In your Supabase project, go to **SQL Editor**.
+
+### Run the migration SQL
+
+In the Supabase **SQL Editor**, run these in order:
+
+1. **`supabase/migrations/0001_init.sql`** — creates:
+   - `public.profiles`
+   - `public.media_items`
+   - enum types (`media_type`, `media_status`)
+   - indexes
+   - RLS + policies (private-by-default with optional public sharing)
+
+2. **`supabase/migrations/0002_storage_media_posters.sql`** — creates:
+   - Storage bucket **`media-posters`** (private, 5MB limit, images only)
+   - RLS policies so users can upload/read/update/delete their own posters, and everyone can read posters for public profiles
+
+Paste each file’s contents into a new query and run it (or use the Supabase CLI).
+
+### Auth
+
+Enable **Email** (and optionally **Password**) in **Authentication → Providers**.
+
+---
+
+## Notes
+
+- Never commit real secrets (especially `OPENAI_API_KEY`) to Git.
+- `NEXT_PUBLIC_SUPABASE_*` values are safe to be public, but keep them in `.env.local` for local development.
+
+---
 
 ## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-### Deploy Media Tracker to Vercel
 
 1. **Push your code to GitHub** (if you haven’t already).
 
@@ -64,10 +111,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 **Deploy from the CLI (from project root)**
 
 ```bash
-# 1. Log in to Vercel (opens browser or prints a link)
 npx vercel login
-
-# 2. Deploy (first time will link the project)
 pnpm run deploy
 # or: npx vercel --yes
 ```

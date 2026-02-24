@@ -36,6 +36,9 @@ export default async function ExplorePage() {
   const libraryTitles = new Set(
     allLibrary.map((i) => normalizeTitle(i.title)).filter(Boolean),
   );
+  const libraryKeys = new Set(
+    allLibrary.map((i) => `${normalizeTitle(i.title)}|${(i.media_type ?? "movie").toLowerCase()}`),
+  );
 
   return (
     <ExploreContent
@@ -47,6 +50,7 @@ export default async function ExplorePage() {
       trendingGames={trendingGames}
       trendingMusic={trendingMusic}
       libraryTitles={libraryTitles}
+      libraryKeys={libraryKeys}
     />
   );
 }

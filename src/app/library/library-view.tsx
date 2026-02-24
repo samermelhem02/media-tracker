@@ -26,11 +26,35 @@ export function LibraryView({
   const [items, setItems] = useState(initialItems);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editItem, setEditItem] = useState<MediaItem | null>(null);
+  const [searchQ, setSearchQ] = useState(initialQ ?? "");
+  const [statusFilter, setStatusFilter] = useState(initialStatus ?? "");
+  const [typeFilter, setTypeFilter] = useState(initialMediaType ?? "");
 
   // Sync with server after router.refresh() (e.g. after delete)
   useEffect(() => {
     setItems(initialItems);
   }, [initialItems]);
+
+  const filteredItems = items.filter((item) => {
+    const matchesSearch =
+      !searchQ.trim() ||
+      (item.title ?? "")
+        .toLowerCase()
+        .includes(searchQ.trim().toLowerCase());
+    const matchesStatus =
+      !statusFilter || (item.status ?? "") === statusFilter;
+    const matchesType =
+      !typeFilter || (item.media_type ?? "") === typeFilter;
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
+  const hasActiveFilters = !!(searchQ.trim() || statusFilter || typeFilter);
+
+  const clearFilters = () => {
+    setSearchQ("");
+    setStatusFilter("");
+    setTypeFilter("");
+  };
 
   return (
     <>
@@ -84,16 +108,23 @@ export function LibraryView({
           </button>
         </div>
         <DashboardFilters
-          action="/library"
           initialQ={initialQ}
           initialStatus={initialStatus}
           initialMediaType={initialMediaType}
+          searchValue={searchQ}
+          onSearchChange={setSearchQ}
+          statusValue={statusFilter}
+          onStatusChange={setStatusFilter}
+          typeValue={typeFilter}
+          onTypeChange={setTypeFilter}
+          onClearFilters={clearFilters}
+          hasActiveFilters={hasActiveFilters}
         />
       </GlassCard>
       <GlassCard className="p-4 sm:p-6">
         <MediaList
-          items={items}
-          groupByType={!initialQ && !initialStatus && !initialMediaType}
+          items={filteredItems}
+          groupByType={!searchQ.trim() && !statusFilter && !typeFilter}
           onEditItem={setEditItem}
           onDeleted={(id) => {
             setItems((prev) => prev.filter((i) => i.id !== id));

@@ -12,7 +12,7 @@ export function DashboardStats({
   averageRating: number;
 }) {
   return (
-    <div className="grid gap-6 sm:grid-cols-3">
+    <div className="grid grid-cols-3 gap-2 sm:gap-4">
       <StatCard label="Total items" value={totalItems} delay={0} />
       <StatCard label="Completed" value={completedItems} delay={0.05} />
       <StatCard

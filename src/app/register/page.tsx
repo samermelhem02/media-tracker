@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient, getServerUser } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/profile";
 import { AuthHeader } from "@/components/auth/auth-header";
+import { AuthHeroRegister } from "@/components/auth/auth-hero";
 import { RegisterForm } from "./register-form";
 
 async function registerAction(formData: FormData) {
@@ -37,14 +38,13 @@ export default async function RegisterPage() {
 
   return (
     <div className="cinematic-auth">
+      <div className="auth-bg" aria-hidden />
       <AuthHeader />
-
-      <main role="main" className="px-4 py-8 sm:px-6 sm:py-12 md:px-8">
-        <div className="mx-auto flex max-w-[1200px] justify-center">
-          <section aria-label="Create account form">
-            <RegisterForm action={registerAction} />
-          </section>
-        </div>
+      <main role="main" className="auth-main">
+        <AuthHeroRegister />
+        <section aria-label="Create account form" className="auth-form-section">
+          <RegisterForm action={registerAction} />
+        </section>
       </main>
     </div>
   );

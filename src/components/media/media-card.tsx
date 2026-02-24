@@ -104,19 +104,18 @@ export function MediaCard({
 
   const cardBody = (
     <motion.div
-      className={`media-card flex h-[420px] flex-col overflow-hidden rounded-lg border border-white/10 bg-zinc-900 cursor-pointer transition-opacity duration-150 hover:shadow-lg ${isNavigating ? "opacity-80" : ""}`}
+      className={`media-card flex flex-col overflow-hidden rounded-lg border border-white/10 bg-zinc-900 cursor-pointer transition-opacity duration-150 hover:shadow-lg ${isNavigating ? "opacity-80" : ""}`}
       whileHover={{ scale: 1.04 }}
       whileTap={{ scale: 0.96 }}
       transition={{ duration: 0.18, ease: "easeInOut" }}
     >
       <PosterImage imageUrl={displayUrl} title={item.title} mediaType={item.media_type} />
-      <div className="p-3">
-        <h3 className="text-sm font-medium leading-tight line-clamp-1 mt-2">
+      <div className="shrink-0 p-2">
+        <h3 className="text-sm font-medium leading-tight line-clamp-1">
           {item.title}
         </h3>
-
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] px-2 py-1 rounded bg-zinc-800 text-white/70">
+          <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-800 text-white/70">
             {item.status}
           </span>
           {item.rating != null && (

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { whatsOnYourMindRecommendationsAction } from "@/app/dashboard/ai-recommendations-actions";
 import { SuggestedCard } from "@/components/recommendations/suggested-card";
+import { ExploreSectionCarousel } from "@/components/explore/explore-section-carousel";
 import type { EnrichedRecommendation } from "@/lib/enrich-recommendations";
 import type { ExploreMediaItem } from "@/components/ExploreMediaModal";
 
@@ -52,7 +53,10 @@ export function WhatsOnYourMind({
 
   return (
     <section className="space-y-4">
-      <h2 className="mt-section-heading">What&apos;s on your mind?</h2>
+      <div className="flex flex-wrap items-baseline gap-2">
+        <h2 className="mt-section-heading">What&apos;s on your mind?</h2>
+        <span className="text-xs font-medium text-yellow-400/90">Powered by AI</span>
+      </div>
       <p className="text-sm text-[var(--mt-text-muted)] max-w-xl">
         Tell us in a few words—we&apos;ll suggest something to watch, listen to, or play.
       </p>
@@ -91,7 +95,7 @@ export function WhatsOnYourMind({
           <p className="mb-3 text-sm text-[var(--mt-text-muted)]">
             Here&apos;s what fits—add any to your library.
           </p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ExploreSectionCarousel title="">
             {suggestions.map((rec) => (
               <SuggestedCard
                 key={rec.id}
@@ -101,7 +105,7 @@ export function WhatsOnYourMind({
                 isInLibrary={libraryTitles.has(normalizeTitle(rec.title))}
               />
             ))}
-          </div>
+          </ExploreSectionCarousel>
         </div>
       )}
     </section>

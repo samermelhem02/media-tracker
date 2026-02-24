@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { resolvePosterUrl } from "@/lib/images";
+import { ExploreAddButton } from "@/components/ui/explore-add-button";
 import type { TMDBMedia } from "@/lib/tmdb";
 import type { ExploreMediaItem } from "@/components/ExploreMediaModal";
 
@@ -25,6 +26,7 @@ export function MDBCard({
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const title = item.title ?? item.name ?? "Unknown";
   const poster = resolvePosterUrl(item.poster_path, type === "tv" ? "series" : "movie");
   const rating = item.vote_average;
@@ -52,6 +54,8 @@ export function MDBCard({
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isAdding || isInLibrary) return;
+    setIsAdding(true);
     formRef.current?.requestSubmit();
   };
 
@@ -66,28 +70,19 @@ export function MDBCard({
           handleClick();
         }
       }}
-      className={`relative flex h-[420px] cursor-pointer flex-col overflow-hidden rounded-lg border border-white/10 bg-zinc-900 transition-opacity duration-150 hover:shadow-lg ${isNavigating ? "opacity-80" : ""}`}
+      className={`relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-white/10 bg-zinc-900 transition-opacity duration-150 hover:shadow-lg ${isNavigating ? "opacity-80" : ""}`}
       whileHover={{ scale: 1.04 }}
       whileTap={{ scale: 0.96 }}
       transition={CARD_TRANSITION}
     >
       {action && (
-        <button
-          type="button"
+        <ExploreAddButton
+          isInLibrary={isInLibrary}
+          isAdding={isAdding}
           onClick={handleAdd}
-          className={`absolute left-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 transition-shadow ${
-            isInLibrary
-              ? "bg-yellow-500/25 text-yellow-400 shadow-[0_0_14px_rgba(250,204,21,0.5)]"
-              : "bg-black/70 text-white hover:bg-black/90 hover:shadow-[0_0_14px_rgba(250,204,21,0.6)] hover:text-yellow-300"
-          }`}
-          aria-label={isInLibrary ? "In your library" : "Add to library"}
-        >
-          {isInLibrary ? (
-            <span className="text-lg font-medium leading-none">✓</span>
-          ) : (
-            <span className="text-xl font-light leading-none">+</span>
-          )}
-        </button>
+          disabled={isInLibrary || isAdding}
+          aria-label={isInLibrary ? "In your library" : isAdding ? "Adding…" : "Add to library"}
+        />
       )}
       <div className="relative w-full shrink-0 overflow-hidden bg-zinc-800 aspect-[2/3]">
         <img

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createMediaItem } from "@/lib/media-items";
+import { createMediaItem, listMediaItems, deleteMediaItem } from "@/lib/media-items";
 import { getPosterUrl } from "@/lib/tmdb";
 import { clearCached } from "@/lib/recommendation-cache";
 
@@ -93,10 +93,9 @@ export async function addFromTMDBAction(formData: FormData): Promise<void> {
   clearCached(user.id);
   revalidatePath("/library");
   revalidatePath("/explore");
-  redirect("/library?added=true");
 }
 
-export async function addFromRecommendationAction(formData: FormData): Promise<never> {
+export async function addFromRecommendationAction(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -150,5 +149,41 @@ export async function addFromRecommendationAction(formData: FormData): Promise<n
   clearCached(user.id);
   revalidatePath("/library");
   revalidatePath("/explore");
-  redirect("/library?added=true");
+}
+
+/** Remove from library by title + type (for Explore "Remove From Library"). */
+export async function removeFromLibraryAction(formData: FormData): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const title = (formData.get("title") as string)?.trim();
+  const type = (formData.get("type") as string)?.trim() || "movie";
+  if (!title) return { error: "Missing title" };
+
+  const mediaType =
+    type === "tv" || type === "series"
+      ? "series"
+      : type === "game"
+        ? "game"
+        : type === "music"
+          ? "music"
+          : "movie";
+
+  const all = await listMediaItems(supabase, user.id, {});
+  const normalized = title.trim().toLowerCase();
+  const match = all.find(
+    (item) =>
+      (item.title ?? "").trim().toLowerCase() === normalized &&
+      (item.media_type ?? "").toLowerCase() === mediaType.toLowerCase()
+  );
+  if (!match) return { error: "Item not found in library" };
+
+  await deleteMediaItem(supabase, user.id, match.id);
+  clearCached(user.id);
+  revalidatePath("/library");
+  revalidatePath("/explore");
+  return {};
 }

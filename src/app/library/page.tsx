@@ -30,12 +30,8 @@ export default async function LibraryPage({
   if (!profile) redirect("/login");
 
   const params = await searchParams;
-  const filters = {
-    q: params.q ?? undefined,
-    status: params.status ?? undefined,
-    mediaType: params.media_type ?? undefined,
-  };
-
+  // Load all items; filtering (search, status, type) is done client-side for instant updates
+  const filters = {};
   const rawItems = await listMediaItems(supabase, user.id, filters);
 
   const items: (MediaItem & { posterUrl?: string | null })[] = await Promise.all(
@@ -74,7 +70,7 @@ export default async function LibraryPage({
       <div className="relative z-10 animate-fadeIn">
         <TopNav user={user} profile={profile} />
         <main className="mx-auto w-full max-w-6xl min-w-0 pt-6 sm:pt-8">
-          <GlassCard className="mb-4 p-4 sm:mb-6 sm:p-6">
+          <GlassCard className="mb-3 p-3 sm:mb-4 sm:p-4">
             <DashboardStats
               totalItems={totalItems}
               completedItems={completedItems}

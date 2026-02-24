@@ -79,15 +79,14 @@ export async function generateMetadataAction(
   const titleStr = String(title).trim();
   const typeStr = type != null ? String(type).trim() : "";
 
-  const mode = process.env.AI_MODE;
+  const mode = process.env.AI_MODE ?? "demo";
 
-  if (mode === "demo") {
+  if (mode !== "live" || !openai) {
     return { ...DEMO_RESPONSE };
   }
 
-  if (mode === "live") {
-    try {
-      const completion = await openai.chat.completions.create({
+  try {
+    const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         temperature: 0.7,
         max_tokens: 400,
@@ -126,11 +125,8 @@ Type: ${typeStr || "unknown"}`,
       if (!parsed) {
         return { ...DEMO_RESPONSE, error: "Invalid AI response" };
       }
-      return parsed;
-    } catch {
-      return { ...DEMO_RESPONSE, error: "AI request failed" };
-    }
+    return parsed;
+  } catch {
+    return { ...DEMO_RESPONSE, error: "AI request failed" };
   }
-
-  return { ...DEMO_RESPONSE };
 }

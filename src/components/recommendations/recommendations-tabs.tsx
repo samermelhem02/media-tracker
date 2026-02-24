@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { resolvePosterUrl } from "@/lib/images";
+import { ExploreAddButton } from "@/components/ui/explore-add-button";
 import type { TMDBMedia } from "@/lib/tmdb";
 import type { TrendingMusic, TrendingGame } from "@/lib/trending";
+import type { EnrichedRecommendation } from "@/lib/enrich-recommendations";
+import { SuggestedGrid } from "@/components/recommendations/suggested-grid";
 import { MDBCard } from "@/components/MDBCard";
 import type { ExploreMediaItem } from "@/components/ExploreMediaModal";
 
@@ -15,8 +18,21 @@ function normalizeTitle(title: string | null | undefined): string {
   return (title ?? "").trim().toLowerCase();
 }
 
+function filterBySearch<T extends { title?: string | null; name?: string | null }>(
+  items: T[],
+  q: string
+): T[] {
+  if (!q.trim()) return items;
+  const lower = q.trim().toLowerCase();
+  return items.filter(
+    (item) =>
+      (item.title ?? "").toLowerCase().includes(lower) ||
+      (item.name ?? "").toLowerCase().includes(lower)
+  );
+}
+
 type RecommendationsTabsProps = {
-  suggestedContent: React.ReactNode;
+  suggested: EnrichedRecommendation[];
   trendingMovies: TMDBMedia[];
   trendingSeries: TMDBMedia[];
   trendingMusic: TrendingMusic[];
@@ -30,7 +46,7 @@ type RecommendationsTabsProps = {
 const TABS = ["Suggested", "Movies", "Series", "Music", "Games"] as const;
 type TabId = (typeof TABS)[number];
 
-function TrendCard({
+export function TrendCard({
   item,
   type,
   action,
@@ -44,6 +60,7 @@ function TrendCard({
   isInLibrary?: boolean;
 }) {
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const posterUrl = resolvePosterUrl(item.poster_path, type);
 
   const handleClick = () => {
@@ -56,6 +73,8 @@ function TrendCard({
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isInLibrary || isAdding) return;
+    setIsAdding(true);
     const form = (e.currentTarget as HTMLButtonElement).closest("form");
     if (form) form.requestSubmit();
   };
@@ -112,27 +131,18 @@ function TrendCard({
             handleClick();
           }
         }}
-        className={`relative flex h-[420px] cursor-pointer flex-col overflow-hidden rounded-lg border border-white/10 bg-zinc-900 transition-opacity duration-150 hover:shadow-lg ${isNavigating ? "opacity-80" : ""}`}
+        className={`relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-white/10 bg-zinc-900 transition-opacity duration-150 hover:shadow-lg ${isNavigating ? "opacity-80" : ""}`}
         whileHover={{ scale: 1.04 }}
         whileTap={{ scale: 0.96 }}
         transition={{ duration: 0.18, ease: "easeInOut" }}
       >
-        <button
-          type="button"
+        <ExploreAddButton
+          isInLibrary={isInLibrary}
+          isAdding={isAdding}
           onClick={handleAdd}
-          className={`absolute left-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 transition-shadow ${
-            isInLibrary
-              ? "bg-yellow-500/25 text-yellow-400 shadow-[0_0_14px_rgba(250,204,21,0.5)]"
-              : "bg-black/70 text-white hover:bg-black/90 hover:shadow-[0_0_14px_rgba(250,204,21,0.6)] hover:text-yellow-300"
-          }`}
-          aria-label={isInLibrary ? "In your library" : "Add to library"}
-        >
-          {isInLibrary ? (
-            <span className="text-lg font-medium leading-none">✓</span>
-          ) : (
-            <span className="text-xl font-light leading-none">+</span>
-          )}
-        </button>
+          disabled={isInLibrary || isAdding}
+          aria-label={isInLibrary ? "In your library" : isAdding ? "Adding…" : "Add to library"}
+        />
         <div className="relative w-full aspect-[2/3] shrink-0 overflow-hidden bg-zinc-800">
           <img
             src={posterUrl}
@@ -149,7 +159,7 @@ function TrendCard({
 }
 
 export function RecommendationsTabs({
-  suggestedContent,
+  suggested,
   trendingMovies,
   trendingSeries,
   trendingMusic,
@@ -160,6 +170,25 @@ export function RecommendationsTabs({
   libraryTitles,
 }: RecommendationsTabsProps) {
   const [activeTab, setActiveTab] = useState<TabId>("Suggested");
+  const [tabSearchQuery, setTabSearchQuery] = useState("");
+
+  const filteredMovies = filterBySearch(trendingMovies, tabSearchQuery);
+  const filteredSeries = filterBySearch(trendingSeries, tabSearchQuery);
+  const filteredMusic = tabSearchQuery.trim()
+    ? trendingMusic.filter((item) =>
+        item.title.toLowerCase().includes(tabSearchQuery.trim().toLowerCase())
+      )
+    : trendingMusic;
+  const filteredGames = tabSearchQuery.trim()
+    ? trendingGames.filter((item) =>
+        item.title.toLowerCase().includes(tabSearchQuery.trim().toLowerCase())
+      )
+    : trendingGames;
+  const filteredSuggested = tabSearchQuery.trim()
+    ? suggested.filter((rec) =>
+        (rec.title ?? "").toLowerCase().includes(tabSearchQuery.trim().toLowerCase())
+      )
+    : suggested;
 
   return (
     <div className="space-y-6">
@@ -197,13 +226,36 @@ export function RecommendationsTabs({
         ))}
       </div>
 
-      {activeTab === "Suggested" && suggestedContent}
+      {/* Search current tab items */}
+      <div className="flex items-center gap-2">
+        <label htmlFor="explore-tab-search" className="sr-only">
+          Search in {activeTab}
+        </label>
+        <input
+          id="explore-tab-search"
+          type="search"
+          value={tabSearchQuery}
+          onChange={(e) => setTabSearchQuery(e.target.value)}
+          placeholder={`Search ${activeTab.toLowerCase()}…`}
+          className="w-full max-w-xs rounded-lg border border-zinc-600 bg-zinc-800/80 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-yellow-500/50 focus:outline-none focus:ring-1 focus:ring-yellow-500/30"
+          autoComplete="off"
+        />
+      </div>
+
+      {activeTab === "Suggested" && (
+        <SuggestedGrid
+          suggested={filteredSuggested}
+          action={addFromRecommendationAction}
+          onSelectItem={onSelectItem}
+          libraryTitles={libraryTitles}
+        />
+      )}
 
       {activeTab === "Movies" && (
         <section className="mt-section">
           <h2 className="mt-section-heading">Trending Movies</h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {trendingMovies.map((item) => (
+            {filteredMovies.map((item) => (
               <MDBCard
                 key={`movie-${item.id}`}
                 item={item}
@@ -221,7 +273,7 @@ export function RecommendationsTabs({
         <section className="mt-section">
           <h2 className="mt-section-heading">Trending Series</h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {trendingSeries.map((item) => (
+            {filteredSeries.map((item) => (
               <MDBCard
                 key={`tv-${item.id}`}
                 item={item}
@@ -239,7 +291,7 @@ export function RecommendationsTabs({
         <section className="mt-section">
           <h2 className="mt-section-heading">Trending Music</h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {trendingMusic.map((item) => (
+            {filteredMusic.map((item) => (
               <TrendCard
                 key={item.id}
                 item={item}
@@ -257,7 +309,7 @@ export function RecommendationsTabs({
         <section className="mt-section">
           <h2 className="mt-section-heading">Trending Games</h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {trendingGames.map((item) => (
+            {filteredGames.map((item) => (
               <TrendCard
                 key={item.id}
                 item={item}

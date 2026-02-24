@@ -210,21 +210,22 @@ body {
 }
 
 /* ============================================
-   Cinematic Auth UI System (auth pages only)
+   Cinematic Auth UI System (Netflix-style)
+   Add your image to public/auth-bg.jpg and uncomment below.
    ============================================ */
 .cinematic-auth {
-  --auth-bg: #ffffff;
-  --auth-bg-secondary: #f5f5f5;
-  --auth-header-bg: #121212;
-  --auth-accent: #f5c518;
+  --auth-bg: rgba(0, 0, 0, 0.85);
+  --auth-bg-secondary: #1a1a1a;
+  --auth-header-bg: transparent;
+  --auth-accent: #F5C518;
   --auth-accent-hover: #e6b800;
-  --auth-text: #000000;
-  --auth-text-secondary: #555555;
-  --auth-text-muted: #777777;
-  --auth-border: #e0e0e0;
-  --auth-divider: #dddddd;
-  --auth-btn-secondary-bg: #ededed;
-  --auth-btn-secondary-text: #222222;
+  --auth-text: #ffffff;
+  --auth-text-secondary: #b3b3b3;
+  --auth-text-muted: #8c8c8c;
+  --auth-border: #333333;
+  --auth-divider: #333333;
+  --auth-btn-secondary-bg: rgba(255, 255, 255, 0.1);
+  --auth-btn-secondary-text: #ffffff;
   --auth-spacing-xs: 4px;
   --auth-spacing-sm: 8px;
   --auth-spacing-md: 16px;
@@ -235,19 +236,76 @@ body {
   --auth-card-radius: 8px;
   --auth-card-padding: 32px;
   --auth-input-height: 44px;
-  --auth-input-radius: 6px;
+  --auth-input-radius: 4px;
   --auth-input-px: 16px;
   --auth-btn-height: 46px;
-  --auth-btn-radius: 24px;
+  --auth-btn-radius: 4px;
   --auth-header-height: 60px;
   --auth-max-width: 1200px;
 }
 
 .cinematic-auth {
-  background: var(--auth-bg);
-  color: var(--auth-text);
+  position: relative;
   min-height: 100vh;
+  color: var(--auth-text);
   font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Full-bleed background for login & register. Add public/auth-bg.jpg (or use url('/yourfile.png') below). */
+.cinematic-auth .auth-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-color: #141414;
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.8) 100%),
+    url('/auth-bg.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+.cinematic-auth .auth-main {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem 4rem;
+  gap: 2rem;
+}
+
+.cinematic-auth .auth-hero {
+  width: 100%;
+  max-width: 640px;
+}
+
+.cinematic-auth .auth-hero-title {
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.cinematic-auth .auth-hero-subtitle {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 500;
+  color: var(--auth-text-secondary);
+}
+
+.cinematic-auth .auth-hero-cta {
+  font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+  color: var(--auth-text-secondary);
+}
+
+.cinematic-auth .auth-form-section {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  justify-content: center;
 }
 
 .cinematic-auth .auth-header {
@@ -283,7 +341,7 @@ body {
   font-size: 15px;
   line-height: 1.5;
   width: 100%;
-  background: var(--auth-bg);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--auth-text);
   transition: border-color 0.15s ease;
 }
@@ -302,7 +360,7 @@ body {
   min-height: 44px;
   border-radius: var(--auth-btn-radius);
   background: var(--auth-accent);
-  color: var(--auth-text);
+  color: #111111;
   font-weight: 600;
   font-size: 15px;
   border: none;
@@ -335,7 +393,7 @@ body {
 }
 
 .cinematic-auth .auth-btn-secondary:hover {
-  background: #e0e0e0;
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .cinematic-auth .auth-btn-secondary:focus-visible {
@@ -347,7 +405,7 @@ body {
   background: var(--auth-bg);
   border-radius: var(--auth-card-radius);
   padding: var(--auth-card-padding);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
   border: 1px solid var(--auth-border);
 }
 

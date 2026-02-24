@@ -143,15 +143,14 @@ export async function generateRecommendationsAction(): Promise<RecommendationsRe
   const allLibrary = await listMediaItems(supabase, user.id);
   const excludeTitles = buildExcludeTitles(allLibrary);
 
-  const mode = process.env.AI_MODE;
+  const mode = process.env.AI_MODE ?? "demo";
 
-  if (mode === "demo") {
+  if (mode !== "live" || !openai) {
     return { recommendations: ensureBalancedRecommendations(DEMO_RECOMMENDATIONS) };
   }
 
-  if (mode === "live") {
-    try {
-      const summary =
+  try {
+    const summary =
         completed.length > 0
           ? buildSummary(completed)
           : "The user has no completed items yet.";
@@ -242,13 +241,13 @@ export async function whatsOnYourMindRecommendationsAction(
   const completed = await listMediaItems(supabase, user.id, { status: "completed" });
   const librarySummary =
     completed.length > 0 ? buildSummary(completed) : "They have no completed items yet.";
-  const mode = process.env.AI_MODE;
+  const mode = process.env.AI_MODE ?? "demo";
 
   let raw: Recommendation[];
 
-  if (mode === "demo") {
+  if (mode !== "live" || !openai) {
     raw = ensureBalancedRecommendations(WHATS_ON_YOUR_MIND_DEMO);
-  } else if (mode === "live" && prompt.length > 0) {
+  } else if (prompt.length > 0) {
     try {
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -291,10 +290,8 @@ Return JSON only: { "recommendations": [ { "title": "...", "media_type": "movie"
     } catch {
       return { suggestions: [], error: "We couldn't load picks right now. Try again in a moment." };
     }
-  } else if (mode === "live" && prompt.length === 0) {
-    return { suggestions: [], error: "Tell us what's on your mind in a few words." };
   } else {
-    raw = ensureBalancedRecommendations(WHATS_ON_YOUR_MIND_DEMO);
+    return { suggestions: [], error: "Tell us what's on your mind in a few words." };
   }
 
   try {

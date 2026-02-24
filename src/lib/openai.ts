@@ -2,8 +2,5 @@ import "server-only";
 import OpenAI from "openai";
 
 const apiKey = process.env.OPENAI_API_KEY;
-if (!apiKey) {
-  throw new Error("OPENAI_API_KEY is required");
-}
-
-export const openai = new OpenAI({ apiKey });
+/** Only set when OPENAI_API_KEY is provided; null otherwise so the app runs without it. */
+export const openai: OpenAI | null = apiKey ? new OpenAI({ apiKey }) : null;

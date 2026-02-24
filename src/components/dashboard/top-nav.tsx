@@ -48,9 +48,37 @@ export function TopNav({ user, profile }: { user: User; profile?: Profile | null
       <div className="relative mx-auto flex max-w-[var(--mt-max-width)] items-center justify-between gap-2 px-4 py-3 sm:px-5 sm:py-3 md:px-6 md:py-4">
         <Link
           href="/library"
-          className="shrink-0 text-base font-semibold tracking-tight text-[var(--mt-text-primary)] hover:opacity-90 transition-opacity duration-200 sm:text-lg md:text-xl"
+          className="shrink-0 hover:opacity-90 transition-opacity duration-200 flex items-center"
+          aria-label="Trackify – Home"
         >
-          Media Tracker
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="170"
+            height="32"
+            viewBox="0 0 170 32"
+            fill="none"
+            role="img"
+            aria-hidden
+            className="h-7 w-auto sm:h-8"
+          >
+            <g>
+              <rect x="0" y="0" width="32" height="32" rx="8" fill="#F5C518" />
+              <rect x="7" y="8" width="18" height="4" rx="2" fill="#111111" />
+              <rect x="14" y="11" width="4" height="13" rx="2" fill="#111111" />
+              <path d="M18.8 16.2L21.8 18L18.8 19.8Z" fill="#F5C518" />
+            </g>
+            <text
+              x="44"
+              y="21.5"
+              fontFamily="Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif"
+              fontSize="16"
+              fontWeight="800"
+              letterSpacing="0.2"
+              fill="#FFFFFF"
+            >
+              Trackify
+            </text>
+          </svg>
         </Link>
 
         {/* Desktop nav */}
